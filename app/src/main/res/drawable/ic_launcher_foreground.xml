@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple notebook icon -->
+    <path
+        android:fillColor="#FFFAF6F0"
+        android:pathData="M30,28h48c2.2,0 4,1.8 4,4v44c0,2.2 -1.8,4 -4,4H30c-2.2,0 -4,-1.8 -4,-4V32C26,29.8 27.8,28 30,28z"/>
+    <!-- Lines on notebook -->
+    <path
+        android:fillColor="#8B7355"
+        android:strokeWidth="0"
+        android:pathData="M36,42h36v2H36zM36,50h36v2H36zM36,58h24v2H36z"/>
+    <!-- Spine -->
+    <path
+        android:fillColor="#5C4A3A"
+        android:pathData="M26,28h4v52h-4z"/>
+</vector>
