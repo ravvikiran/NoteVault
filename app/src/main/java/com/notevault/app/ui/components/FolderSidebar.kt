@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -158,10 +159,12 @@ private fun FolderItem(
         label = "folderBg"
     )
 
-    val folderColor = try {
-        Color(folder.colorHex.toColorInt())
-    } catch (_: Exception) {
-        MaterialTheme.colorScheme.primary
+    val folderColor = remember(folder.colorHex) {
+        try {
+            Color(folder.colorHex.toColorInt())
+        } catch (_: Exception) {
+            Color(0xFF8B7355) // fallback warm brown
+        }
     }
 
     Row(

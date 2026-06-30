@@ -1,8 +1,8 @@
 package com.notevault.app.ui.screens.editor
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,7 +63,6 @@ fun NoteEditorScreen(
         }
     }
 
-    // Auto-save when navigating back
     val handleBack: () -> Unit = {
         if (state.title.isNotBlank() || state.content.isNotBlank()) {
             viewModel.saveNote { onBack() }
@@ -115,93 +114,89 @@ fun NoteEditorScreen(
             )
         }
     ) { paddingValues ->
-        AnimatedVisibility(
-            visible = state.isLoading,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(100.dp))
-                CircularProgressIndicator()
-            }
-        }
-
-        AnimatedVisibility(
-            visible = !state.isLoading,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .imePadding()
-            ) {
-                // Title field
-                TextField(
-                    value = state.title,
-                    onValueChange = { viewModel.updateTitle(it) },
-                    placeholder = {
-                        Text(
-                            "Title",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                        )
-                    },
-                    textStyle = MaterialTheme.typography.headlineMedium,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    singleLine = true,
+        Crossfade(
+            targetState = state.isLoading,
+            animationSpec = tween(300),
+            label = "editorContent",
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) { isLoading ->
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                )
+                        .fillMaxSize()
+                        .imePadding()
+                ) {
+                    TextField(
+                        value = state.title,
+                        onValueChange = { viewModel.updateTitle(it) },
+                        placeholder = {
+                            Text(
+                                "Title",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            )
+                        },
+                        textStyle = MaterialTheme.typography.headlineMedium,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
+                    )
 
-                // Content field
-                TextField(
-                    value = state.content,
-                    onValueChange = { viewModel.updateContent(it) },
-                    placeholder = {
-                        Text(
-                            "Start writing...",
-                            style = TextStyle(fontSize = 16.sp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                        )
-                    },
-                    textStyle = TextStyle(
-                        fontSize = 16.sp,
-                        lineHeight = 24.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(horizontal = 8.dp)
-                        .focusRequester(focusRequester)
-                )
+                    TextField(
+                        value = state.content,
+                        onValueChange = { viewModel.updateContent(it) },
+                        placeholder = {
+                            Text(
+                                "Start writing...",
+                                style = TextStyle(fontSize = 16.sp),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            )
+                        },
+                        textStyle = TextStyle(
+                            fontSize = 16.sp,
+                            lineHeight = 24.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(horizontal = 8.dp)
+                            .focusRequester(focusRequester)
+                    )
+                }
             }
         }
     }
 
-    // Focus content field for new notes
     LaunchedEffect(state.isLoading) {
         if (!state.isLoading && noteId == null) {
-            try { focusRequester.requestFocus() } catch (_: Exception) { }
+            try {
+                focusRequester.requestFocus()
+            } catch (_: Exception) {
+                // FocusRequester may not be attached yet
+            }
         }
     }
 }
