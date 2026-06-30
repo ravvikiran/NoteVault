@@ -9,9 +9,9 @@ sealed class Screen(val route: String) {
     data object NoteEditor : Screen("note_editor/{noteId}") {
         fun createRoute(noteId: Long) = "note_editor/$noteId"
     }
-    data object NewNote : Screen("note_editor/new?folderId={folderId}&noteType={noteType}") {
+    data object NewNote : Screen("new_note?folderId={folderId}&noteType={noteType}") {
         fun createRoute(folderId: Long? = null, noteType: String = "text") =
-            "note_editor/new?folderId=${folderId ?: -1}&noteType=$noteType"
+            "new_note?folderId=${folderId ?: -1}&noteType=$noteType"
     }
     data object FolderNotes : Screen("folder/{folderId}") {
         fun createRoute(folderId: Long) = "folder/$folderId"

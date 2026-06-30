@@ -58,17 +58,14 @@ fun NoteVaultNavHost(
         }
 
         composable(Screen.Calendar.route) {
-            // Placeholder — will be implemented
             TodayScreen(onNewNote = {})
         }
 
         composable(Screen.Search.route) {
-            // Placeholder — will be implemented
             TodayScreen(onNewNote = {})
         }
 
         composable(Screen.Settings.route) {
-            // Placeholder — will be implemented
             TodayScreen(onNewNote = {})
         }
 
@@ -84,7 +81,7 @@ fun NoteVaultNavHost(
         }
 
         composable(
-            route = "note_editor/new?folderId={folderId}&noteType={noteType}",
+            route = "new_note?folderId={folderId}&noteType={noteType}",
             arguments = listOf(
                 navArgument("folderId") { type = NavType.LongType; defaultValue = -1L },
                 navArgument("noteType") { type = NavType.StringType; defaultValue = "text" }
@@ -113,6 +110,14 @@ fun NoteVaultNavHost(
                 onNewNote = { navController.navigate(Screen.NewNote.createRoute(folderId)) },
                 onFolderSidebarRequest = onFolderSidebarRequest
             )
+        }
+
+        composable(Screen.Trash.route) {
+            TodayScreen(onNewNote = {})
+        }
+
+        composable(Screen.Favorites.route) {
+            TodayScreen(onNewNote = {})
         }
     }
 }

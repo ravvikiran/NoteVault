@@ -69,7 +69,7 @@ interface NoteDao {
     suspend fun deleteNote(note: NoteEntity)
 
     @Query("UPDATE notes SET isDeleted = 1, deletedAt = :deletedAt WHERE id = :noteId")
-    suspend fun softDeleteNote(noteId: Long, deletedAt: Long = System.currentTimeMillis())
+    suspend fun softDeleteNote(noteId: Long, deletedAt: Long)
 
     @Query("UPDATE notes SET isDeleted = 0, deletedAt = NULL WHERE id = :noteId")
     suspend fun restoreNote(noteId: Long)

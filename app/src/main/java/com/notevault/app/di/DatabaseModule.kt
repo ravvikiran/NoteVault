@@ -23,6 +23,9 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    @Volatile
+    private var INSTANCE: NoteVaultDatabase? = null
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): NoteVaultDatabase {
@@ -35,12 +38,13 @@ object DatabaseModule {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
                     CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-                        val folderDao = provideDatabase(context).folderDao()
-                        seedDefaultFolders(folderDao)
+                        val database = INSTANCE ?: return@launch
+                        seedDefaultFolders(database.folderDao())
                     }
                 }
             })
             .build()
+            .also { INSTANCE = it }
     }
 
     @Provides
@@ -52,6 +56,9 @@ object DatabaseModule {
     fun provideFolderDao(database: NoteVaultDatabase): FolderDao = database.folderDao()
 
     private suspend fun seedDefaultFolders(folderDao: FolderDao) {
+        val count = folderDao.getFolderCount()
+        if (count > 0) return // Already seeded
+
         val defaultFolders = listOf(
             FolderEntity(name = "Inbox", colorHex = "#8B7355", iconName = "inbox", sortOrder = 0, isDefault = true),
             FolderEntity(name = "Ideas", colorHex = "#D4A847", iconName = "lightbulb", sortOrder = 1, isDefault = true),

@@ -17,7 +17,7 @@ import com.notevault.app.data.local.entity.TagEntity
         NoteTagCrossRef::class
     ],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class NoteVaultDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao

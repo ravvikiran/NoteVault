@@ -1,4 +1,4 @@
-package com.notevault.app.ui.components
+﻿package com.notevault.app.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.spring
@@ -21,13 +21,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Badge
 import androidx.compose.material3.Divider
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -36,7 +33,6 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,13 +42,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.notevault.app.data.local.entity.FolderEntity
-import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun FolderSidebar(
     folders: List<FolderEntity>,
     selectedFolderId: Long?,
-    noteCountProvider: (Long) -> Flow<Int>,
     onFolderSelected: (Long?) -> Unit,
     onAllNotesSelected: () -> Unit,
     onFavoritesSelected: () -> Unit,
@@ -98,7 +92,7 @@ fun FolderSidebar(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp))
+            Divider(modifier = Modifier.padding(horizontal = 24.dp))
             Spacer(modifier = Modifier.height(8.dp))
 
             // Folders Header
@@ -134,7 +128,7 @@ fun FolderSidebar(
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp))
+            Divider(modifier = Modifier.padding(horizontal = 24.dp))
             Spacer(modifier = Modifier.height(8.dp))
 
             // Trash
@@ -166,7 +160,7 @@ private fun FolderItem(
 
     val folderColor = try {
         Color(folder.colorHex.toColorInt())
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         MaterialTheme.colorScheme.primary
     }
 

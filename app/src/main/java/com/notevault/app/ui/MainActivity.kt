@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -70,9 +71,6 @@ fun NoteVaultMainScreen() {
             FolderSidebar(
                 folders = folders,
                 selectedFolderId = selectedFolderId,
-                noteCountProvider = { folderId ->
-                    kotlinx.coroutines.flow.flowOf(0)
-                },
                 onFolderSelected = { folderId ->
                     viewModel.selectFolder(folderId)
                     scope.launch { drawerState.close() }
@@ -110,7 +108,6 @@ fun NoteVaultMainScreen() {
                     }
                 },
                 onNewFolder = {
-                    // TODO: Show new folder dialog
                     scope.launch { drawerState.close() }
                 }
             )
@@ -121,8 +118,8 @@ fun NoteVaultMainScreen() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
-                // Hide bottom bar on editor screen
-                val showBottomBar = currentDestination?.route?.startsWith("note_editor") != true
+                val showBottomBar = currentDestination?.route?.startsWith("note_editor") != true &&
+                    currentDestination?.route?.startsWith("new_note") != true
 
                 if (showBottomBar) {
                     NavigationBar(
@@ -163,12 +160,14 @@ fun NoteVaultMainScreen() {
                 }
             }
         ) { paddingValues ->
-            NoteVaultNavHost(
-                navController = navController,
-                onFolderSidebarRequest = {
-                    scope.launch { drawerState.open() }
-                }
-            )
+            Box(modifier = Modifier.padding(paddingValues)) {
+                NoteVaultNavHost(
+                    navController = navController,
+                    onFolderSidebarRequest = {
+                        scope.launch { drawerState.open() }
+                    }
+                )
+            }
         }
     }
 }

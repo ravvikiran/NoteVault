@@ -7,6 +7,7 @@ import com.notevault.app.data.local.entity.NoteEntity
 import com.notevault.app.data.repository.FolderRepository
 import com.notevault.app.data.repository.NoteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,17 +31,21 @@ class NotesViewModel @Inject constructor(
     private val _notes = MutableStateFlow<List<NoteEntity>>(emptyList())
     val notes: StateFlow<List<NoteEntity>> = _notes.asStateFlow()
 
+    private var notesJob: Job? = null
+
     init {
         loadNotes()
     }
 
     fun selectFolder(folderId: Long?) {
+        if (_selectedFolderId.value == folderId) return
         _selectedFolderId.value = folderId
         loadNotes()
     }
 
     private fun loadNotes() {
-        viewModelScope.launch {
+        notesJob?.cancel()
+        notesJob = viewModelScope.launch {
             val flow = when (val id = _selectedFolderId.value) {
                 null -> noteRepository.getAllActiveNotes()
                 else -> noteRepository.getNotesByFolder(id)

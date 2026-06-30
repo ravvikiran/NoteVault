@@ -47,7 +47,7 @@ class NoteRepository @Inject constructor(
         noteDao.updateNote(note)
 
     suspend fun softDeleteNote(noteId: Long) =
-        noteDao.softDeleteNote(noteId)
+        noteDao.softDeleteNote(noteId, System.currentTimeMillis())
 
     suspend fun restoreNote(noteId: Long) =
         noteDao.restoreNote(noteId)
