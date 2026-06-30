@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,7 +34,7 @@ class NoteEditorViewModel @Inject constructor(
 
     fun loadNote(noteId: Long) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.update { it.copy(isLoading = true) }
             val note = noteRepository.getNoteById(noteId)
             if (note != null) {
                 _state.value = NoteEditorState(
@@ -47,7 +48,7 @@ class NoteEditorViewModel @Inject constructor(
                     isLoading = false
                 )
             } else {
-                _state.value = _state.value.copy(isLoading = false)
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }
@@ -61,68 +62,70 @@ class NoteEditorViewModel @Inject constructor(
     }
 
     fun updateTitle(title: String) {
-        _state.value = _state.value.copy(title = title)
+        _state.update { it.copy(title = title) }
     }
 
     fun updateContent(content: String) {
-        _state.value = _state.value.copy(content = content)
+        _state.update { it.copy(content = content) }
     }
 
     fun saveNote(onSaved: () -> Unit = {}) {
         viewModelScope.launch {
-            val state = _state.value
-            _state.value = state.copy(isSaving = true)
+            val currentState = _state.value
+            _state.update { it.copy(isSaving = true) }
 
             val currentTime = System.currentTimeMillis()
 
-            if (state.id != null) {
-                // Update existing
-                val note = noteRepository.getNoteById(state.id)
+            if (currentState.id != null) {
+                val note = noteRepository.getNoteById(currentState.id)
                 if (note != null) {
                     noteRepository.updateNote(
                         note.copy(
-                            title = state.title,
-                            content = state.content,
+                            title = currentState.title,
+                            content = currentState.content,
                             modifiedAt = currentTime
                         )
                     )
                 }
             } else {
-                // Create new
                 val note = NoteEntity(
-                    title = state.title,
-                    content = state.content,
-                    noteType = state.noteType,
-                    folderId = state.folderId,
+                    title = currentState.title,
+                    content = currentState.content,
+                    noteType = currentState.noteType,
+                    folderId = currentState.folderId,
                     createdAt = currentTime,
                     modifiedAt = currentTime
                 )
                 val newId = noteRepository.insertNote(note)
-                _state.value = _state.value.copy(id = newId)
+                _state.update { it.copy(id = newId) }
             }
 
-            _state.value = _state.value.copy(isSaving = false)
+            _state.update { it.copy(isSaving = false) }
             onSaved()
         }
     }
 
     fun togglePin() {
-        val state = _state.value
-        _state.value = state.copy(isPinned = !state.isPinned)
-        if (state.id != null) {
-            viewModelScope.launch {
-                noteRepository.togglePin(state.id, !state.isPinned)
+        _state.update { current ->
+            val newPinned = !current.isPinned
+            current.id?.let { id ->
+                viewModelScope.launch {
+                    noteRepository.togglePin(id, newPinned)
+                }
             }
+            current.copy(isPinned = newPinned)
         }
     }
 
     fun toggleFavorite() {
-        val state = _state.value
-        _state.value = state.copy(isFavorite = !state.isFavorite)
-        if (state.id != null) {
-            viewModelScope.launch {
-                noteRepository.toggleFavorite(state.id, !state.isFavorite)
+        _state.update { current ->
+            val newFavorite = !current.isFavorite
+            current.id?.let { id ->
+                viewModelScope.launch {
+                    noteRepository.toggleFavorite(id, newFavorite)
+                }
             }
+            current.copy(isFavorite = newFavorite)
         }
     }
 

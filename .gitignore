@@ -1,11 +1,51 @@
-*.iml
-.gradle
-/local.properties
-/.idea
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+build/
+/app/build/
+
+# Local configuration file (sdk path, etc)
 local.properties
-/app/build
+
+# Android Studio
+*.iml
+.idea/
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Room schema exports
+/app/schemas/
+
+# Kotlin
+*.kotlin_metadata
+
+# Signing keys
+*.jks
+*.keystore
+
+# Log files
+*.log

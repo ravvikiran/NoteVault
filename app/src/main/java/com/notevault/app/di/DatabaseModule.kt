@@ -17,34 +17,36 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ApplicationScope
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    @Volatile
-    private var INSTANCE: NoteVaultDatabase? = null
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(): CoroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): NoteVaultDatabase {
+    fun provideDatabase(
+        @ApplicationContext context: Context,
+        @ApplicationScope scope: CoroutineScope
+    ): NoteVaultDatabase {
         return Room.databaseBuilder(
             context,
             NoteVaultDatabase::class.java,
             "notevault.db"
         )
-            .addCallback(object : RoomDatabase.Callback() {
-                override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
-                    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-                        val database = INSTANCE ?: return@launch
-                        seedDefaultFolders(database.folderDao())
-                    }
-                }
-            })
+            .addCallback(SeedDatabaseCallback(scope))
             .build()
-            .also { INSTANCE = it }
     }
 
     @Provides
@@ -54,22 +56,38 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideFolderDao(database: NoteVaultDatabase): FolderDao = database.folderDao()
+}
 
-    private suspend fun seedDefaultFolders(folderDao: FolderDao) {
-        val count = folderDao.getFolderCount()
-        if (count > 0) return // Already seeded
+/**
+ * Seeds default folders on first database creation.
+ * Uses a separate callback class to avoid circular dependency issues.
+ */
+private class SeedDatabaseCallback(
+    private val scope: CoroutineScope
+) : RoomDatabase.Callback() {
 
-        val defaultFolders = listOf(
-            FolderEntity(name = "Inbox", colorHex = "#8B7355", iconName = "inbox", sortOrder = 0, isDefault = true),
-            FolderEntity(name = "Ideas", colorHex = "#D4A847", iconName = "lightbulb", sortOrder = 1, isDefault = true),
-            FolderEntity(name = "Diary", colorHex = "#A67B7B", iconName = "book", sortOrder = 2, isDefault = true),
-            FolderEntity(name = "Journal", colorHex = "#5E8B8B", iconName = "edit_note", sortOrder = 3, isDefault = true),
-            FolderEntity(name = "Shopping", colorHex = "#BF8B3C", iconName = "shopping_cart", sortOrder = 4, isDefault = true),
-            FolderEntity(name = "To-Do", colorHex = "#5B7B5C", iconName = "check_circle", sortOrder = 5, isDefault = true),
-            FolderEntity(name = "Work", colorHex = "#6B7FA3", iconName = "work", sortOrder = 6, isDefault = true),
-            FolderEntity(name = "Study", colorHex = "#7B5E7B", iconName = "school", sortOrder = 7, isDefault = true),
-            FolderEntity(name = "Scrap", colorHex = "#5A5A5A", iconName = "note", sortOrder = 8, isDefault = true),
-        )
-        folderDao.insertFolders(defaultFolders)
+    override fun onCreate(db: SupportSQLiteDatabase) {
+        super.onCreate(db)
+        // Insert default folders directly via SQL to avoid circular dependency
+        // with the DAO (which requires the database to be fully built).
+        scope.launch {
+            val folders = listOf(
+                Triple("Inbox", "#8B7355", "inbox"),
+                Triple("Ideas", "#D4A847", "lightbulb"),
+                Triple("Diary", "#A67B7B", "book"),
+                Triple("Journal", "#5E8B8B", "edit_note"),
+                Triple("Shopping", "#BF8B3C", "shopping_cart"),
+                Triple("To-Do", "#5B7B5C", "check_circle"),
+                Triple("Work", "#6B7FA3", "work"),
+                Triple("Study", "#7B5E7B", "school"),
+                Triple("Scrap", "#5A5A5A", "note"),
+            )
+            folders.forEachIndexed { index, (name, color, icon) ->
+                db.execSQL(
+                    """INSERT INTO folders (name, colorHex, iconName, sortOrder, isDefault, createdAt) 
+                       VALUES ('$name', '$color', '$icon', $index, 1, ${System.currentTimeMillis()})"""
+                )
+            }
+        }
     }
 }
