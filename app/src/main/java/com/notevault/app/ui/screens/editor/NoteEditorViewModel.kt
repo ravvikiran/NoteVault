@@ -106,26 +106,24 @@ class NoteEditorViewModel @Inject constructor(
     }
 
     fun togglePin() {
-        _state.update { current ->
-            val newPinned = !current.isPinned
-            current.id?.let { id ->
-                viewModelScope.launch {
-                    noteRepository.togglePin(id, newPinned)
-                }
+        val current = _state.value
+        val newPinned = !current.isPinned
+        _state.update { it.copy(isPinned = newPinned) }
+        current.id?.let { id ->
+            viewModelScope.launch {
+                noteRepository.togglePin(id, newPinned)
             }
-            current.copy(isPinned = newPinned)
         }
     }
 
     fun toggleFavorite() {
-        _state.update { current ->
-            val newFavorite = !current.isFavorite
-            current.id?.let { id ->
-                viewModelScope.launch {
-                    noteRepository.toggleFavorite(id, newFavorite)
-                }
+        val current = _state.value
+        val newFavorite = !current.isFavorite
+        _state.update { it.copy(isFavorite = newFavorite) }
+        current.id?.let { id ->
+            viewModelScope.launch {
+                noteRepository.toggleFavorite(id, newFavorite)
             }
-            current.copy(isFavorite = newFavorite)
         }
     }
 

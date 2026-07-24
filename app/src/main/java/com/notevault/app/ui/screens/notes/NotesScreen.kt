@@ -266,8 +266,7 @@ private fun EmptyNotesState(modifier: Modifier = Modifier) {
     }
 }
 
-private val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
-
 private fun formatDate(timestamp: Long): String {
+    val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
     return dateFormat.format(Date(timestamp))
 }
